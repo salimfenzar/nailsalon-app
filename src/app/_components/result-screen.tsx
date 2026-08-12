@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { ArrowLeft, Camera, Download, Eye, SlidersHorizontal } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  Download,
+  Eye,
+  SlidersHorizontal,
+  UserRoundPlus,
+} from "lucide-react";
 import { clamp } from "../_lib/geometry";
 import { copyFor, type Language } from "../_lib/i18n";
 import {
@@ -16,6 +23,7 @@ import type { ScanResult } from "../_lib/scan";
 import { ColorPicker } from "./color-picker";
 import { FineTunePanel } from "./fine-tune-panel";
 import { NailCanvas } from "./nail-canvas";
+import { ShareModal } from "./share-modal";
 import { Eyebrow, GhostButton, PrimaryButton, Stage, cx } from "./ui";
 
 type ResultScreenProps = {
@@ -23,6 +31,8 @@ type ResultScreenProps = {
   result: ScanResult;
   onRescan: () => void;
   onBack: () => void;
+  /** Clears the session and sends the station straight to the next scan. */
+  onNextClient: () => void;
 };
 
 export function ResultScreen({
@@ -30,16 +40,23 @@ export function ResultScreen({
   result,
   onRescan,
   onBack,
+  onNextClient,
 }: ResultScreenProps) {
   const t = copyFor(language);
   const { verdict, skinTone } = result;
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [shape, setShape] = useState<NailShapeId>(verdict.shape);
-  const [polish, setPolish] = useState<Polish>(() => suggestPolish(result));
+  const [shape, setShape] = useState<NailShapeId>(
+    () => presetShape() ?? verdict.shape,
+  );
+  const [polish, setPolish] = useState<Polish>(
+    () => presetPolish() ?? suggestPolish(result),
+  );
   const [alignment, setAlignment] = useState<Alignment>(DEFAULT_ALIGNMENT);
   const [fineTuneOpen, setFineTuneOpen] = useState(false);
   const [comparing, setComparing] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
 
   const match = useMemo(() => matchFor(result, shape), [result, shape]);
   const definition = NAIL_SHAPES[shape];
@@ -59,6 +76,14 @@ export function ResultScreen({
     link.click();
   };
 
+  // Snapshots the composed look so the modal keeps showing it even while the
+  // client keeps tweaking the canvas underneath.
+  const openShare = () => {
+    const canvas = canvasRef.current;
+    setPreview(canvas ? canvas.toDataURL("image/jpeg", 0.85) : null);
+    setShareOpen(true);
+  };
+
   return (
     <Stage name="result" className="bg-porcelain">
       <header className="bg-porcelain/85 safe-top border-sand/70 sticky top-0 z-20 flex items-center justify-between border-b px-6 pb-4 backdrop-blur-xl">
@@ -71,7 +96,7 @@ export function ResultScreen({
         </button>
         <Eyebrow>{t.yourResult}</Eyebrow>
         <button
-          onClick={save}
+          onClick={openShare}
           aria-label={t.saveImage}
           className="border-sand text-mocha hover:border-champagne hover:text-espresso flex h-9 w-9 items-center justify-center rounded-full border transition-colors"
         >
@@ -196,10 +221,16 @@ export function ResultScreen({
 
         <section className="safe-bottom flex flex-col gap-3 px-6 pt-2">
           <PrimaryButton
-            onClick={save}
+            onClick={openShare}
             icon={<Download className="h-4 w-4" strokeWidth={1.25} />}
           >
             {t.saveThisLook}
+          </PrimaryButton>
+          <PrimaryButton
+            onClick={onNextClient}
+            icon={<UserRoundPlus className="h-4 w-4" strokeWidth={1.25} />}
+          >
+            {t.nextClient}
           </PrimaryButton>
           <GhostButton
             onClick={onRescan}
@@ -209,6 +240,17 @@ export function ResultScreen({
           </GhostButton>
         </section>
       </div>
+
+      <ShareModal
+        language={language}
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        preview={preview}
+        shape={shape}
+        polish={polish}
+        match={match}
+        onDownload={save}
+      />
     </Stage>
   );
 }
@@ -226,6 +268,24 @@ function matchFor(result: ScanResult, shape: NailShapeId): number {
   const order = NAIL_SHAPE_ORDER.indexOf(shape);
   const target = NAIL_SHAPE_ORDER.indexOf(verdict.shape);
   return clamp(verdict.match - 8 - Math.abs(order - target) * 5, 58, 99);
+}
+
+/**
+ * A look shared by QR arrives as query parameters, so a client who scans the
+ * salon's code lands on the same shape and shade the stylist was showing.
+ */
+function presetShape(): NailShapeId | null {
+  if (typeof window === "undefined") return null;
+  const value = new URLSearchParams(window.location.search).get("shape");
+  return value && NAIL_SHAPE_ORDER.includes(value as NailShapeId)
+    ? (value as NailShapeId)
+    : null;
+}
+
+function presetPolish(): Polish | null {
+  if (typeof window === "undefined") return null;
+  const value = new URLSearchParams(window.location.search).get("polish");
+  return POLISHES.find((polish) => polish.id === value) ?? null;
 }
 
 function suggestPolish(result: ScanResult): Polish {

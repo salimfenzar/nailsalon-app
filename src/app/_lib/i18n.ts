@@ -62,6 +62,19 @@ export type Copy = {
   >;
   saveThisLook: string;
   scanAgain: string;
+  nextClient: string;
+
+  shareTitle: string;
+  shareSubtitle: string;
+  shareScanHint: string;
+  shareShape: string;
+  shareColour: string;
+  shareDownload: string;
+  shareSend: string;
+  shareCopyLink: string;
+  shareLinkCopied: string;
+  shareClose: string;
+  shareQrAlt: string;
 
   colourDesign: string;
   shades: (count: number) => string;
@@ -163,6 +176,19 @@ const EN: Copy = {
   },
   saveThisLook: "Save this look",
   scanAgain: "Scan again",
+  nextClient: "Next Client",
+
+  shareTitle: "Your look",
+  shareSubtitle: "Take it with you",
+  shareScanHint: "Scan to open this shape and shade on your own phone.",
+  shareShape: "Shape",
+  shareColour: "Colour",
+  shareDownload: "Download image",
+  shareSend: "Send",
+  shareCopyLink: "Copy link",
+  shareLinkCopied: "Link copied",
+  shareClose: "Close",
+  shareQrAlt: "QR code linking to this look",
 
   colourDesign: "Colour & Design",
   shades: (count) => `${count} shades`,
@@ -268,6 +294,19 @@ const NL: Copy = {
   },
   saveThisLook: "Bewaar deze look",
   scanAgain: "Opnieuw scannen",
+  nextClient: "Nieuwe Scan",
+
+  shareTitle: "Jouw look",
+  shareSubtitle: "Neem 'm mee",
+  shareScanHint: "Scan om deze vorm en kleur op je eigen telefoon te openen.",
+  shareShape: "Vorm",
+  shareColour: "Kleur",
+  shareDownload: "Afbeelding downloaden",
+  shareSend: "Versturen",
+  shareCopyLink: "Link kopiëren",
+  shareLinkCopied: "Link gekopieerd",
+  shareClose: "Sluiten",
+  shareQrAlt: "QR-code met een link naar deze look",
 
   colourDesign: "Kleur & Design",
   shades: (count) => `${count} tinten`,

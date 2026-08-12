@@ -23,6 +23,7 @@ export function Studio() {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [session, setSession] = useState(0);
 
   // Left disabled so the 8 MB task is only fetched once a scan is actually
   // requested; `detectImage` loads it on demand for the upload route.
@@ -69,6 +70,25 @@ export function Studio() {
     setStage("result");
   }, []);
 
+  /**
+   * Hands the station to the next client: drops the previous photo, landmarks
+   * and shade choices, clears any look preset left in the URL by a shared QR,
+   * and goes straight to the scanner. The language stays as the salon set it.
+   */
+  const handleNextClient = useCallback(() => {
+    setResult(null);
+    setNotice(null);
+    setBusy(false);
+
+    if (typeof window !== "undefined" && window.location.search) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+
+    // Remounts the screens, so no per-screen state survives into the next scan.
+    setSession((value) => value + 1);
+    setStage("scan");
+  }, []);
+
   if (stage === "intro") {
     return (
       <LanguageIntro
@@ -83,6 +103,7 @@ export function Studio() {
   if (stage === "scan") {
     return (
       <ScanScreen
+        key={session}
         language={language}
         onComplete={handleComplete}
         onCancel={() => setStage("splash")}
@@ -94,10 +115,12 @@ export function Studio() {
   if (stage === "result" && result) {
     return (
       <ResultScreen
+        key={session}
         language={language}
         result={result}
         onRescan={() => setStage("scan")}
         onBack={() => setStage("splash")}
+        onNextClient={handleNextClient}
       />
     );
   }
