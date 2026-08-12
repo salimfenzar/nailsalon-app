@@ -79,7 +79,7 @@ export function ResultScreen({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const link = document.createElement("a");
-    link.download = `lumiere-${shape}-${polish.id}.jpg`;
+    link.download = `naillab-${shape}-${polish.id}.jpg`;
     link.href = canvas.toDataURL("image/jpeg", 0.92);
     link.click();
   };

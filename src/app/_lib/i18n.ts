@@ -105,7 +105,7 @@ export type Copy = {
 const EN: Copy = {
   chooseLanguage: "Choose your language",
   languageHint: "Select to continue",
-  nailAtelier: "Nail Atelier",
+  nailAtelier: "Studio",
 
   aiHandScan: "AI Hand Scan",
   splashHeadlineLead: "Discover the shape",
@@ -222,7 +222,7 @@ const EN: Copy = {
 const NL: Copy = {
   chooseLanguage: "Kies je taal",
   languageHint: "Selecteer om verder te gaan",
-  nailAtelier: "Nail Atelier",
+  nailAtelier: "Studio",
 
   aiHandScan: "AI Handscan",
   splashHeadlineLead: "Ontdek de vorm",

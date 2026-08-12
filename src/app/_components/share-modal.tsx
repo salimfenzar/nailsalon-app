@@ -22,7 +22,7 @@ type ShareModalProps = {
 /** A link that reopens this exact shape and shade on another device. */
 function buildLookUrl(shape: NailShapeId, polish: Polish): string {
   if (typeof window === "undefined") return "";
-  const url = new URL(window.location.origin + window.location.pathname);
+  const url = new URL("/app", window.location.origin);
   url.searchParams.set("shape", shape);
   url.searchParams.set("polish", polish.id);
   return url.toString();

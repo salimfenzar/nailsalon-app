@@ -1,4 +1,4 @@
-# Maison Ongle — AI hand scan studio
+# NailLab Studio — AI hand scan studio
 
 A mobile-first Next.js app that scans a hand with the camera, measures its
 proportions with MediaPipe hand landmarks, recommends a nail shape, and paints

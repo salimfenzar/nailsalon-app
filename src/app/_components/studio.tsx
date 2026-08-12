@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { HandLandmarks } from "../_lib/geometry";
 import { copyFor, type Language } from "../_lib/i18n";
 import {
@@ -17,9 +18,17 @@ import { SplashScreen } from "./splash-screen";
 
 type Stage = "intro" | "splash" | "scan" | "result";
 
-export function Studio() {
-  const [stage, setStage] = useState<Stage>("intro");
-  const [language, setLanguage] = useState<Language>("en");
+type StudioProps = {
+  initialLanguage?: Language;
+  startAt?: "splash" | "scan";
+};
+
+export function Studio({ initialLanguage, startAt }: StudioProps) {
+  const router = useRouter();
+  const [stage, setStage] = useState<Stage>(
+    () => startAt ?? (initialLanguage ? "splash" : "intro"),
+  );
+  const [language, setLanguage] = useState<Language>(initialLanguage ?? "en");
   const [result, setResult] = useState<ScanResult | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -28,6 +37,10 @@ export function Studio() {
   // Left disabled so the 8 MB task is only fetched once a scan is actually
   // requested; `detectImage` loads it on demand for the upload route.
   const { detectImage } = useHandLandmarker(false);
+
+  const leaveToLanding = useCallback(() => {
+    router.push("/");
+  }, [router]);
 
   const handlePickPhoto = useCallback(
     async (file: File) => {
@@ -106,7 +119,10 @@ export function Studio() {
         key={session}
         language={language}
         onComplete={handleComplete}
-        onCancel={() => setStage("splash")}
+        onCancel={() => {
+          if (startAt === "scan") leaveToLanding();
+          else setStage("splash");
+        }}
         onPickPhoto={handlePickPhoto}
       />
     );
@@ -128,6 +144,7 @@ export function Studio() {
   return (
     <SplashScreen
       language={language}
+      onHome={leaveToLanding}
       onStartScan={() => {
         setNotice(null);
         setStage("scan");

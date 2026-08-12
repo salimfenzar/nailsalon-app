@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Language } from "../_lib/i18n";
 import { Label, Stage, Wordmark, cx } from "./ui";
 
@@ -36,7 +37,9 @@ export function LanguageIntro({ onSelect }: LanguageIntroProps) {
         <div className="flex flex-1 flex-col items-center justify-center gap-16">
           <div className="animate-logo-pulse flex flex-col items-center gap-7">
             <span className="bg-charcoal/70 h-14 w-px" />
-            <Wordmark />
+            <Link href="/" aria-label="NailLab Studio">
+              <Wordmark />
+            </Link>
             <span className="bg-charcoal/70 h-14 w-px" />
           </div>
         </div>

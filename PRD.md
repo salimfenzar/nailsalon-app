@@ -1,4 +1,4 @@
-# Lumière Nails - AI Hand Scan & Nail Advice Web App
+# NailLab Studio - AI Hand Scan & Nail Advice Web App
 
 ## Goal
 Build a premium, mobile-first Next.js (App Router) web application using Tailwind CSS and Google MediaPipe (`@mediapipe/tasks-vision`).

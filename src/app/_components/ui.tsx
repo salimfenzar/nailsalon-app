@@ -1,4 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
+import Link from "next/link";
 
 export function cx(...values: Array<string | false | null | undefined>): string {
   return values.filter(Boolean).join(" ");
@@ -6,15 +7,28 @@ export function cx(...values: Array<string | false | null | undefined>): string 
 
 type Tone = "dark" | "light";
 
+const primaryClass =
+  "bg-charcoal text-atelier inline-flex items-center justify-center gap-3 rounded-sm px-8 py-4 text-xs font-medium tracking-[0.2em] uppercase transition-colors duration-300 hover:bg-[#2c2926]";
+
+const outlineClass =
+  "border-charcoal text-charcoal inline-flex items-center justify-center gap-3 rounded-sm border bg-transparent px-8 py-4 text-xs font-medium tracking-[0.2em] uppercase transition-colors duration-300 hover:bg-charcoal hover:text-atelier";
+
 export function Wordmark({
   tone = "dark",
   size = "lg",
+  align = "center",
 }: {
   tone?: Tone;
   size?: "sm" | "lg";
+  align?: "center" | "start";
 }) {
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div
+      className={cx(
+        "flex flex-col gap-2",
+        align === "center" ? "items-center" : "items-start",
+      )}
+    >
       <span
         className={cx(
           "font-display leading-none font-normal tracking-[0.32em]",
@@ -22,7 +36,7 @@ export function Wordmark({
           tone === "light" ? "text-atelier" : "text-charcoal",
         )}
       >
-        LUMIÈRE
+        NAILLAB
       </span>
       <Label
         className={cx(
@@ -30,7 +44,7 @@ export function Wordmark({
           tone === "light" ? "text-atelier/50" : "text-charcoal/45",
         )}
       >
-        Nail Atelier
+        Studio
       </Label>
     </div>
   );
@@ -72,10 +86,8 @@ export function PrimaryButton({
     <button
       {...props}
       className={cx(
-        "bg-charcoal text-atelier flex w-full items-center justify-center gap-3 rounded-sm px-8 py-4",
-        "text-xs font-medium tracking-[0.2em] uppercase",
-        "transition-colors duration-300 hover:bg-[#2c2926]",
-        "disabled:pointer-events-none disabled:opacity-40",
+        primaryClass,
+        "flex w-full disabled:pointer-events-none disabled:opacity-40",
         className,
       )}
     >
@@ -95,16 +107,62 @@ export function OutlineButton({
     <button
       {...props}
       className={cx(
-        "border-charcoal text-charcoal flex w-full items-center justify-center gap-3 rounded-sm border bg-transparent px-8 py-4",
-        "text-xs font-medium tracking-[0.2em] uppercase",
-        "hover:bg-charcoal hover:text-atelier transition-colors duration-300",
-        "disabled:pointer-events-none disabled:opacity-40",
+        outlineClass,
+        "flex w-full disabled:pointer-events-none disabled:opacity-40",
         className,
       )}
     >
       {icon}
       {children}
     </button>
+  );
+}
+
+export function PrimaryLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={cx(primaryClass, className)}>
+      {children}
+    </Link>
+  );
+}
+
+export function OutlineLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={cx(outlineClass, className)}>
+      {children}
+    </Link>
+  );
+}
+
+export function OutlineAnchor({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <a href={href} className={cx(outlineClass, className)}>
+      {children}
+    </a>
   );
 }
 

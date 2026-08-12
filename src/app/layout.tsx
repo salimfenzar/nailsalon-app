@@ -15,13 +15,13 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  title: "Lumière Nails — AI Hand Scan",
+  title: "NailLab Studio | AI Hand Analysis & AR Nail Polish Studio",
   description:
-    "Scan your hand and discover the nail shape, length and shade that were made for you.",
-  applicationName: "Lumière Nails",
+    "De vorm en kleur van hun droomnagels. Direct in AR, aan de stoel.",
+  applicationName: "NailLab Studio",
   appleWebApp: {
     capable: true,
-    title: "Lumière Nails",
+    title: "NailLab Studio",
     statusBarStyle: "black-translucent",
   },
 };
@@ -30,14 +30,13 @@ export const viewport: Viewport = {
   themeColor: "#fbf9f5",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="nl"
       className={`${cormorant.variable} ${jost.variable} h-full antialiased`}
     >
       <body className="bg-atelier text-charcoal flex min-h-full flex-col">

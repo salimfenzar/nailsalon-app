@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef } from "react";
 import { copyFor, type Language } from "../_lib/i18n";
 import { Label, OutlineButton, PrimaryButton, Stage, Wordmark } from "./ui";
@@ -10,6 +11,7 @@ type SplashScreenProps = {
   onPickPhoto: (file: File) => void;
   busy: boolean;
   notice: string | null;
+  onHome?: () => void;
 };
 
 export function SplashScreen({
@@ -18,6 +20,7 @@ export function SplashScreen({
   onPickPhoto,
   busy,
   notice,
+  onHome,
 }: SplashScreenProps) {
   const t = copyFor(language);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -26,7 +29,15 @@ export function SplashScreen({
     <Stage name="splash" className="bg-atelier animate-fade">
       <div className="safe-top flex flex-1 flex-col px-10">
         <header className="flex justify-center pb-14">
-          <Wordmark size="sm" />
+          {onHome ? (
+            <button type="button" onClick={onHome} aria-label="NailLab Studio">
+              <Wordmark size="sm" />
+            </button>
+          ) : (
+            <Link href="/" aria-label="NailLab Studio">
+              <Wordmark size="sm" />
+            </Link>
+          )}
         </header>
 
         <div className="animate-rise flex flex-1 flex-col justify-center">

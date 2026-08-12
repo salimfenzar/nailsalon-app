@@ -17,6 +17,10 @@
   --color-atelier: #fbf9f5;
   --color-hairline: #e5e0d8;
   --color-charcoal: #1a1817;
+  --color-lilac: #f3e8ff;
+  --color-lilac-soft: #fdf4ff;
+  --color-violet: #6d4e9b;
+  --color-sage: #d7efc4;
 
   --font-display: var(--font-cormorant), "Times New Roman", serif;
   --font-sans: var(--font-jost), ui-sans-serif, system-ui, sans-serif;
@@ -26,6 +30,7 @@
   --animate-shimmer: shimmer 3.5s linear infinite;
   --animate-breathe: breathe 4s ease-in-out infinite;
   --animate-logo-pulse: logo-pulse 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  --animate-marquee: marquee 40s linear infinite;
 
   @keyframes rise {
     from {
@@ -78,6 +83,15 @@
     50% {
       opacity: 1;
       transform: scale(1.012);
+    }
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
     }
   }
 }
