@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored MediaPipe wasm loaders, shipped as-is from @mediapipe/tasks-vision.
+    "public/mediapipe/**",
   ]),
 ]);
 

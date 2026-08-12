@@ -1,26 +1,167 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --color-porcelain: #faf7f4;
+  --color-linen: #f3ece5;
+  --color-sand: #e6dacd;
+  --color-champagne: #d9c4a7;
+  --color-taupe: #b59b84;
+  --color-mocha: #8c7361;
+  --color-espresso: #4a3b32;
+  --color-ink: #211a15;
+  --color-noir: #14100e;
+  --color-gold: #c7a97b;
+  --color-blush: #e8cac2;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-display: var(--font-cormorant), "Times New Roman", serif;
+  --font-sans: var(--font-jost), ui-sans-serif, system-ui, sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --animate-rise: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade: fade 1.2s ease both;
+  --animate-shimmer: shimmer 3.5s linear infinite;
+  --animate-breathe: breathe 4s ease-in-out infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(1.25rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes shimmer {
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes breathe {
+    0%,
+    100% {
+      opacity: 0.45;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.85;
+      transform: scale(1.06);
+    }
   }
 }
 
+html {
+  background-color: var(--color-porcelain);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv01";
+  overscroll-behavior-y: none;
+}
+
+/* The scan stage is a full-bleed camera surface; a rubber-band scroll there
+   detaches the overlay canvas from the video beneath it. */
+body:has([data-stage="scan"]) {
+  overflow: hidden;
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility tracking-luxe {
+  letter-spacing: 0.32em;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--spacing) * 6);
+}
+
+@utility safe-top {
+  padding-top: calc(env(safe-area-inset-top, 0px) + var(--spacing) * 5);
+}
+
+@utility gilded {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-taupe) 0%,
+    var(--color-gold) 25%,
+    #f0e3cd 45%,
+    var(--color-gold) 65%,
+    var(--color-taupe) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: var(--animate-shimmer);
+}
+
+input[type="range"] {
+  appearance: none;
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-taupe) 45%, transparent);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 2px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-taupe) 45%, transparent);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: -0.5rem;
+  border-radius: 9999px;
+  background: var(--color-porcelain);
+  border: 1px solid var(--color-champagne);
+  box-shadow: 0 2px 10px rgb(74 59 50 / 0.25);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 9999px;
+  background: var(--color-porcelain);
+  border: 1px solid var(--color-champagne);
+  box-shadow: 0 2px 10px rgb(74 59 50 / 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
