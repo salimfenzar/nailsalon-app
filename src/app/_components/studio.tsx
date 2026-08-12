@@ -37,6 +37,7 @@ export function Studio() {
       try {
         const image = await loadImageFile(file);
         const canvas = imageToCanvas(image);
+        if (image instanceof ImageBitmap) image.close();
         if (!canvas) throw new Error(messages.imageUnreadable);
 
         const detection = await detectImage(canvas);

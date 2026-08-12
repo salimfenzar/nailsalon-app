@@ -54,9 +54,16 @@ export function mirrorLandmarks(landmarks: HandLandmarks): HandLandmarks {
   return landmarks.map((l) => ({ ...l, x: 1 - l.x }));
 }
 
-export function imageToCanvas(image: HTMLImageElement): HTMLCanvasElement | null {
-  const width = image.naturalWidth;
-  const height = image.naturalHeight;
+type SourceImage = HTMLImageElement | ImageBitmap;
+
+function sourceSize(image: SourceImage): { width: number; height: number } {
+  return image instanceof HTMLImageElement
+    ? { width: image.naturalWidth, height: image.naturalHeight }
+    : { width: image.width, height: image.height };
+}
+
+export function imageToCanvas(image: SourceImage): HTMLCanvasElement | null {
+  const { width, height } = sourceSize(image);
   if (!width || !height) return null;
 
   const scale = Math.min(1, MAX_CAPTURE_EDGE / Math.max(width, height));
@@ -70,7 +77,23 @@ export function imageToCanvas(image: HTMLImageElement): HTMLCanvasElement | null
   return canvas;
 }
 
-export function loadImageFile(file: File): Promise<HTMLImageElement> {
+/**
+ * Decodes an uploaded photo with its EXIF rotation already baked in.
+ *
+ * Phone cameras store the sensor image unrotated plus an orientation tag, and
+ * browsers disagree about whether `drawImage` honours that tag. Baking it in
+ * here means the pixels the detector sees are the pixels the client sees, so
+ * landmarks and photo can never disagree about which way is up.
+ */
+export async function loadImageFile(file: File): Promise<SourceImage> {
+  if (typeof createImageBitmap === "function") {
+    try {
+      return await createImageBitmap(file, { imageOrientation: "from-image" });
+    } catch {
+      // Falls through to the <img> path below.
+    }
+  }
+
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const image = new Image();
