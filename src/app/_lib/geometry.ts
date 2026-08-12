@@ -75,6 +75,14 @@ export function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
+export function lerpVec(a: Vec2, b: Vec2, t: number): Vec2 {
+  return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) };
+}
+
+export function dot(a: Vec2, b: Vec2): number {
+  return a.x * b.x + a.y * b.y;
+}
+
 /**
  * Averages a burst of detections. The median rejects the frames where a finger
  * was momentarily mistracked, which a mean would smear across the result.

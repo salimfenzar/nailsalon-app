@@ -3,11 +3,15 @@ import {
   add,
   clamp,
   distance,
+  dot,
+  lerp,
+  lerpVec,
   normalize,
   perpendicular,
   scale,
   sub,
   type FingerId,
+  type FingerSpec,
   type Vec2,
 } from "./geometry";
 
@@ -156,6 +160,12 @@ export const DEFAULT_ALIGNMENT: Alignment = {
 };
 
 /**
+ * Where the cuticle sits along DIP → TIP. The nail bed lives on the distal
+ * third of that segment, so we start closer to the tip than the joint.
+ */
+const CUTICLE_ALONG = 0.4;
+
+/**
  * Nails are measured against the knuckle span rather than the finger segments:
  * the MCP landmarks are anchored to the palm, so they keep their spacing when
  * the fingers spread, which the phalanx lengths do not.
@@ -170,6 +180,105 @@ export function knuckleUnit(points: Vec2[]): number {
  */
 export const NAIL_WIDTH_RATIO = 0.66;
 
+/** True when a fingertip measurement is long enough and in-frame to trust. */
+function fingerIsReliable(
+  points: Vec2[],
+  finger: FingerSpec,
+  unit: number,
+  bounds?: { width: number; height: number },
+): boolean {
+  const dip = points[finger.dip];
+  const tip = points[finger.tip];
+  if (!dip || !tip) return false;
+
+  const distal = distance(tip, dip);
+  if (!(distal > unit * 0.085)) return false;
+
+  if (bounds) {
+    const marginX = bounds.width * 0.02;
+    const marginY = bounds.height * 0.02;
+    if (
+      tip.x < marginX ||
+      tip.x > bounds.width - marginX ||
+      tip.y < marginY ||
+      tip.y > bounds.height - marginY ||
+      dip.x < marginX ||
+      dip.x > bounds.width - marginX ||
+      dip.y < marginY ||
+      dip.y > bounds.height - marginY
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * DIP → TIP when that segment is clear; otherwise PIP → TIP so foreshortened
+ * fingers still get a stable heading instead of a noisy near-zero vector.
+ */
+function fingerAxis(points: Vec2[], finger: FingerSpec, unit: number): Vec2 {
+  const tip = points[finger.tip];
+  const dip = points[finger.dip];
+  const pip = points[finger.pip];
+  const distal = distance(tip, dip);
+  const from = distal > unit * 0.1 ? dip : pip;
+  return normalize(sub(tip, from));
+}
+
+function buildFingerFrame(
+  points: Vec2[],
+  finger: FingerSpec,
+  shape: NailShape,
+  alignment: Alignment,
+  unit: number,
+): NailFrame | null {
+  const dip = points[finger.dip];
+  const tip = points[finger.tip];
+  if (!dip || !tip) return null;
+
+  const distal = distance(tip, dip);
+  const axis = fingerAxis(points, finger, unit);
+  const perp = perpendicular(axis);
+
+  // Blend knuckle-scaled width with distal-scaled width so each finger tracks
+  // its own foreshortening without collapsing when the tip wobbles.
+  const knuckleHalf =
+    (unit * NAIL_WIDTH_RATIO * finger.widthFactor * alignment.scale) / 2;
+  const distalHalf =
+    (Math.max(distal, unit * 0.12) * 0.4 * finger.widthFactor * alignment.scale) /
+    2;
+  const halfWidth = knuckleHalf * 0.7 + distalHalf * 0.3;
+
+  // Cuticle sits between DIP and TIP; free edge reaches the tip for a 1.0
+  // length factor and extends past it for longer shapes.
+  const cuticleBase = lerpVec(dip, tip, CUTICLE_ALONG);
+  const tipReach = distance(cuticleBase, tip);
+  const bedLength = clamp(
+    tipReach * shape.lengthFactor * alignment.lengthScale,
+    halfWidth * 1.45,
+    halfWidth * 6.2,
+  );
+
+  const origin = add(
+    cuticleBase,
+    add(
+      scale(perp, alignment.offsetX * halfWidth),
+      scale(axis, alignment.offsetY * bedLength),
+    ),
+  );
+
+  return {
+    finger: finger.id,
+    origin,
+    axis,
+    perp,
+    length: bedLength,
+    halfWidth,
+  };
+}
+
 export function buildNailFrames(
   points: Vec2[],
   shape: NailShape,
@@ -178,40 +287,105 @@ export function buildNailFrames(
   const unit = knuckleUnit(points);
 
   return FINGERS.map((finger) => {
-    const dip = points[finger.dip];
-    const tip = points[finger.tip];
-    const axis = normalize(sub(tip, dip));
-    const perp = perpendicular(axis);
-    const distal = distance(tip, dip);
+    const frame = buildFingerFrame(points, finger, shape, alignment, unit);
+    if (frame) return frame;
 
-    const halfWidth =
-      (unit * NAIL_WIDTH_RATIO * finger.widthFactor * alignment.scale) / 2;
-
-    // Foreshortened fingers collapse the distal segment; clamping against the
-    // nail width keeps the plate plausible instead of squashing it to nothing.
-    const bedLength = clamp(
-      distal * 0.78 * shape.lengthFactor * alignment.lengthScale,
-      halfWidth * 1.5,
-      halfWidth * 6,
-    );
-
-    const cuticle = add(
-      add(dip, scale(axis, distal * 0.22)),
-      add(
-        scale(perp, alignment.offsetX * halfWidth),
-        scale(axis, alignment.offsetY * bedLength),
-      ),
-    );
-
+    // Degenerate fallback so callers always get five frames.
     return {
       finger: finger.id,
-      origin: cuticle,
-      axis,
-      perp,
-      length: bedLength,
-      halfWidth,
+      origin: points[finger.tip] ?? { x: 0, y: 0 },
+      axis: { x: 0, y: -1 },
+      perp: { x: 1, y: 0 },
+      length: unit * 0.5,
+      halfWidth: (unit * NAIL_WIDTH_RATIO * finger.widthFactor) / 2,
     };
   });
+}
+
+type SmoothedFinger = {
+  frame: NailFrame;
+  reliable: boolean;
+};
+
+export type NailFrameSmoother = {
+  update(
+    points: Vec2[],
+    shape: NailShape,
+    alignment?: Alignment,
+    bounds?: { width: number; height: number },
+  ): NailFrame[];
+  /** Last stable frames — useful while tracking briefly drops. */
+  lastFrames(): NailFrame[];
+  reset(): void;
+};
+
+function smoothAxis(previous: Vec2, next: Vec2, alpha: number): Vec2 {
+  const aligned = dot(previous, next) < 0 ? scale(next, -1) : next;
+  return normalize(lerpVec(previous, aligned, alpha));
+}
+
+/**
+ * Temporal smoother for the live AR overlay. Exponentially blends origin,
+ * heading and width so nails do not jitter frame-to-frame, and keeps the last
+ * reliable pose when a fingertip briefly loses confidence.
+ */
+export function createNailFrameSmoother(alpha = 0.28): NailFrameSmoother {
+  let previous: Partial<Record<FingerId, SmoothedFinger>> = {};
+
+  return {
+    update(points, shape, alignment = DEFAULT_ALIGNMENT, bounds) {
+      const unit = knuckleUnit(points);
+      const frames: NailFrame[] = [];
+
+      for (const finger of FINGERS) {
+        const reliable = fingerIsReliable(points, finger, unit, bounds);
+        const measured = buildFingerFrame(points, finger, shape, alignment, unit);
+        const prior = previous[finger.id];
+
+        if (!measured) {
+          if (prior) frames.push(prior.frame);
+          continue;
+        }
+
+        if (!reliable && prior) {
+          frames.push(prior.frame);
+          continue;
+        }
+
+        if (!prior) {
+          previous[finger.id] = { frame: measured, reliable };
+          frames.push(measured);
+          continue;
+        }
+
+        const axis = smoothAxis(prior.frame.axis, measured.axis, alpha);
+        const blended: NailFrame = {
+          finger: finger.id,
+          origin: lerpVec(prior.frame.origin, measured.origin, alpha),
+          axis,
+          perp: perpendicular(axis),
+          length: lerp(prior.frame.length, measured.length, alpha),
+          halfWidth: lerp(prior.frame.halfWidth, measured.halfWidth, alpha * 0.85),
+        };
+
+        previous[finger.id] = { frame: blended, reliable };
+        frames.push(blended);
+      }
+
+      return frames;
+    },
+
+    lastFrames() {
+      return FINGERS.flatMap((finger) => {
+        const entry = previous[finger.id];
+        return entry ? [entry.frame] : [];
+      });
+    },
+
+    reset() {
+      previous = {};
+    },
+  };
 }
 
 /** Maps a point in nail-local space (u along, v across) to canvas pixels. */

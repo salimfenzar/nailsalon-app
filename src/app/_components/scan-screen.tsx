@@ -11,7 +11,12 @@ import {
   toPixels,
   type HandLandmarks,
 } from "../_lib/geometry";
-import { NAIL_SHAPES, buildNailFrames, type NailShapeId } from "../_lib/nail-shapes";
+import {
+  NAIL_SHAPES,
+  createNailFrameSmoother,
+  type NailFrame,
+  type NailShapeId,
+} from "../_lib/nail-shapes";
 import { drawArOverlay } from "../_lib/render-nails";
 import {
   buildScanResult,
@@ -110,6 +115,12 @@ export function ScanScreen({
   const finished = useRef(false);
   const shapeRef = useRef<NailShapeId>("almond");
   const guidanceRef = useRef<Guidance>(idleGuidance(t));
+  const frameSmoother = useRef(createNailFrameSmoother(0.26));
+  const lastOverlay = useRef<{
+    points: ReturnType<typeof toPixels>;
+    frames: NailFrame[];
+    shapeId: NailShapeId;
+  } | null>(null);
 
   const publish = useCallback((next: Guidance) => {
     const previous = guidanceRef.current;
@@ -163,6 +174,8 @@ export function ScanScreen({
     samples.current = [];
     recent.current = [];
     countdownStart.current = null;
+    frameSmoother.current.reset();
+    lastOverlay.current = null;
 
     const loop = (time: number) => {
       raf = requestAnimationFrame(loop);
@@ -188,10 +201,21 @@ export function ScanScreen({
       const landmarks = detection?.landmarks?.[0] as HandLandmarks | undefined;
 
       if (!landmarks || landmarks.length < 21) {
-        if (time - lastSeen.current > GRACE_MS) {
+        const cached = lastOverlay.current;
+        if (cached && time - lastSeen.current <= GRACE_MS) {
+          const pulse = 0.5 + 0.5 * Math.sin(time / 380);
+          drawArOverlay(
+            ctx,
+            cached.points,
+            cached.frames,
+            NAIL_SHAPES[cached.shapeId],
+            pulse,
+          );
+        } else if (time - lastSeen.current > GRACE_MS) {
           countdownStart.current = null;
           samples.current = [];
           recent.current = [];
+          lastOverlay.current = null;
           publish(idleGuidance(tRef.current));
         }
         return;
@@ -216,7 +240,15 @@ export function ScanScreen({
       }
 
       const shape = NAIL_SHAPES[shapeRef.current];
-      const frames = buildNailFrames(points, shape);
+      const frames = frameSmoother.current.update(points, shape, undefined, {
+        width: canvas.width,
+        height: canvas.height,
+      });
+      lastOverlay.current = {
+        points,
+        frames,
+        shapeId: shapeRef.current,
+      };
       const pulse = 0.5 + 0.5 * Math.sin(time / 380);
       drawArOverlay(ctx, points, frames, shape, pulse);
 
