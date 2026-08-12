@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#faf7f4",
+  themeColor: "#fbf9f5",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -40,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${cormorant.variable} ${jost.variable} h-full antialiased`}
     >
-      <body className="bg-porcelain text-ink flex min-h-full flex-col">
+      <body className="bg-atelier text-charcoal flex min-h-full flex-col">
         {children}
       </body>
     </html>

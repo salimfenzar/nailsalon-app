@@ -24,7 +24,15 @@ import { ColorPicker } from "./color-picker";
 import { FineTunePanel } from "./fine-tune-panel";
 import { NailCanvas } from "./nail-canvas";
 import { ShareModal } from "./share-modal";
-import { Eyebrow, GhostButton, PrimaryButton, Stage, cx } from "./ui";
+import {
+  Chip,
+  IconButton,
+  Label,
+  OutlineButton,
+  PrimaryButton,
+  Stage,
+  cx,
+} from "./ui";
 
 type ResultScreenProps = {
   language: Language;
@@ -85,78 +93,72 @@ export function ResultScreen({
   };
 
   return (
-    <Stage name="result" className="bg-porcelain">
-      <header className="bg-porcelain/85 safe-top border-sand/70 sticky top-0 z-20 flex items-center justify-between border-b px-6 pb-4 backdrop-blur-xl">
-        <button
-          onClick={onBack}
-          aria-label={t.back}
-          className="border-sand text-mocha hover:border-champagne hover:text-espresso flex h-9 w-9 items-center justify-center rounded-full border transition-colors"
-        >
+    <Stage name="result" className="bg-atelier">
+      <header className="bg-atelier/90 safe-top border-hairline sticky top-0 z-20 flex items-center justify-between border-b px-6 pb-4 backdrop-blur-xl">
+        <IconButton onClick={onBack} aria-label={t.back}>
           <ArrowLeft className="h-4 w-4" strokeWidth={1.25} />
-        </button>
-        <Eyebrow>{t.yourResult}</Eyebrow>
-        <button
-          onClick={openShare}
-          aria-label={t.saveImage}
-          className="border-sand text-mocha hover:border-champagne hover:text-espresso flex h-9 w-9 items-center justify-center rounded-full border transition-colors"
-        >
+        </IconButton>
+        <Label className="text-charcoal/45">{t.yourResult}</Label>
+        <IconButton onClick={openShare} aria-label={t.saveImage}>
           <Download className="h-4 w-4" strokeWidth={1.25} />
-        </button>
+        </IconButton>
       </header>
 
-      <div className="flex flex-col gap-7 pt-6 pb-16">
+      <div className="flex flex-col gap-9 pt-6 pb-16">
         <section className="relative px-6">
-          <div className="border-sand relative overflow-hidden rounded-[2rem] border shadow-[0_30px_60px_-40px_rgba(74,59,50,0.7)]">
-            <NailCanvas
-              result={result}
-              shape={shape}
-              polish={polish}
-              alignment={alignment}
-              bare={comparing}
-              canvasRef={canvasRef}
-            />
+          {/* A hairline mat around the print, the way a proof sheet is framed. */}
+          <div className="border-hairline rounded-sm border p-2">
+            <div className="relative overflow-hidden">
+              <NailCanvas
+                result={result}
+                shape={shape}
+                polish={polish}
+                alignment={alignment}
+                bare={comparing}
+                canvasRef={canvasRef}
+              />
 
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/15 to-transparent" />
+              <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
+                <span className="bg-atelier text-charcoal flex items-baseline gap-1.5 rounded-sm px-3 py-1.5">
+                  <span className="font-display text-base leading-none">
+                    {match}%
+                  </span>
+                  <span className="text-[0.55rem] font-medium tracking-[0.2em] uppercase">
+                    {t.match}
+                  </span>
+                </span>
+                {isRecommended ? (
+                  <span className="bg-charcoal text-atelier rounded-sm px-3 py-1.5 text-[0.55rem] font-medium tracking-[0.2em] uppercase">
+                    {t.stylistPick}
+                  </span>
+                ) : null}
+              </div>
 
-            <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
-              <span className="bg-porcelain/92 text-espresso flex items-baseline gap-1.5 rounded-full px-3.5 py-2 shadow-[0_8px_24px_-12px_rgba(33,26,21,0.8)] backdrop-blur-md">
-                <span className="font-display text-lg leading-none">{match}%</span>
-                <span className="text-[0.55rem] tracking-[0.18em] uppercase">
-                  {t.match}
-                </span>
-              </span>
-              {isRecommended ? (
-                <span className="bg-espresso/85 text-porcelain rounded-full px-3 py-1.5 text-[0.5rem] tracking-[0.18em] uppercase backdrop-blur-md">
-                  {t.stylistPick}
-                </span>
-              ) : null}
+              <button
+                onPointerDown={() => setComparing(true)}
+                onPointerUp={() => setComparing(false)}
+                onPointerLeave={() => setComparing(false)}
+                onPointerCancel={() => setComparing(false)}
+                className="bg-atelier text-charcoal absolute bottom-3 left-3 flex items-center gap-2 rounded-sm px-3 py-1.5 text-[0.55rem] font-medium tracking-[0.2em] uppercase"
+              >
+                <Eye className="h-3.5 w-3.5" strokeWidth={1.25} />
+                {comparing ? t.bareHand : t.holdToCompare}
+              </button>
+
+              <button
+                onClick={() => setFineTuneOpen((value) => !value)}
+                aria-expanded={fineTuneOpen}
+                aria-label={t.fineTuneAlignment}
+                className={cx(
+                  "absolute right-3 bottom-3 flex h-8 w-8 items-center justify-center rounded-sm transition-colors",
+                  fineTuneOpen || fineTuneTouched
+                    ? "bg-charcoal text-atelier"
+                    : "bg-atelier text-charcoal",
+                )}
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={1.25} />
+              </button>
             </div>
-
-            <button
-              onPointerDown={() => setComparing(true)}
-              onPointerUp={() => setComparing(false)}
-              onPointerLeave={() => setComparing(false)}
-              onPointerCancel={() => setComparing(false)}
-              className="bg-porcelain/92 text-espresso absolute bottom-4 left-4 flex items-center gap-2 rounded-full px-3.5 py-2 text-[0.55rem] tracking-[0.18em] uppercase backdrop-blur-md transition-transform active:scale-95"
-            >
-              <Eye className="h-3.5 w-3.5" strokeWidth={1.25} />
-              {comparing ? t.bareHand : t.holdToCompare}
-            </button>
-
-            <button
-              onClick={() => setFineTuneOpen((value) => !value)}
-              aria-expanded={fineTuneOpen}
-              aria-label={t.fineTuneAlignment}
-              className={cx(
-                "absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full px-3 py-2 text-[0.55rem] tracking-[0.16em] uppercase backdrop-blur-md transition-colors active:scale-95",
-                fineTuneOpen || fineTuneTouched
-                  ? "bg-espresso text-porcelain"
-                  : "bg-porcelain/92 text-espresso",
-              )}
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={1.25} />
-              {t.align}
-            </button>
           </div>
 
           {fineTuneOpen ? (
@@ -170,14 +172,14 @@ export function ResultScreen({
           ) : null}
         </section>
 
-        <section className="flex flex-col items-center gap-3 px-8 text-center">
-          <Eyebrow>
+        <section className="flex flex-col gap-3 px-6">
+          <Label className="text-charcoal/45">
             {isRecommended ? t.recommendedShape : t.previewing}
-          </Eyebrow>
-          <h1 className="font-display text-espresso text-4xl leading-none font-light">
+          </Label>
+          <h1 className="font-display text-charcoal text-[2.75rem] leading-none">
             {definition.name}
           </h1>
-          <p className="text-mocha max-w-xs text-balance text-sm leading-relaxed font-light">
+          <p className="text-charcoal/60 max-w-sm text-sm leading-relaxed font-light">
             {isRecommended
               ? t.shapeSummaries[shape]
               : t.offPickNote(NAIL_SHAPES[verdict.shape].name)}
@@ -185,29 +187,23 @@ export function ResultScreen({
         </section>
 
         <section className="flex flex-col gap-4">
-          <div className="flex items-baseline justify-between px-6">
-            <Eyebrow>{t.shape}</Eyebrow>
-            <span className="text-mocha/70 text-[0.6rem] tracking-[0.16em] uppercase">
+          <div className="flex items-baseline justify-between gap-4 px-6">
+            <Label className="text-charcoal/45">{t.shape}</Label>
+            <Label className="text-charcoal/35 truncate text-[0.6rem]">
               {t.alsoSuitsYou}:{" "}
               {verdict.alternates.map((id) => NAIL_SHAPES[id].name).join(", ")}
-            </span>
+            </Label>
           </div>
-          <div className="no-scrollbar flex gap-2.5 overflow-x-auto px-6">
+          <div className="no-scrollbar flex gap-2 overflow-x-auto px-6">
             {NAIL_SHAPE_ORDER.map((id) => (
-              <button
+              <Chip
                 key={id}
+                active={id === shape}
                 onClick={() => setShape(id)}
-                aria-pressed={id === shape}
-                className={cx(
-                  "shrink-0 rounded-full border px-4 py-2 text-[0.6rem] tracking-[0.18em] uppercase transition-colors duration-300",
-                  id === shape
-                    ? "border-espresso bg-espresso text-porcelain"
-                    : "border-sand text-mocha hover:border-champagne",
-                )}
               >
                 {NAIL_SHAPES[id].name}
                 {id === verdict.shape ? " ·" : ""}
-              </button>
+              </Chip>
             ))}
           </div>
         </section>
@@ -219,25 +215,26 @@ export function ResultScreen({
           skinTone={skinTone}
         />
 
-        <section className="safe-bottom flex flex-col gap-3 px-6 pt-2">
-          <PrimaryButton
-            onClick={openShare}
-            icon={<Download className="h-4 w-4" strokeWidth={1.25} />}
-          >
-            {t.saveThisLook}
-          </PrimaryButton>
+        <section className="safe-bottom border-hairline mx-6 flex flex-col gap-2.5 border-t pt-6">
           <PrimaryButton
             onClick={onNextClient}
             icon={<UserRoundPlus className="h-4 w-4" strokeWidth={1.25} />}
           >
             {t.nextClient}
           </PrimaryButton>
-          <GhostButton
-            onClick={onRescan}
-            icon={<Camera className="h-4 w-4" strokeWidth={1.25} />}
+          <OutlineButton
+            onClick={openShare}
+            icon={<Download className="h-4 w-4" strokeWidth={1.25} />}
           >
+            {t.saveThisLook}
+          </OutlineButton>
+          <button
+            onClick={onRescan}
+            className="text-charcoal/50 hover:text-charcoal flex items-center justify-center gap-2 py-2 text-xs font-medium tracking-[0.2em] uppercase transition-colors"
+          >
+            <Camera className="h-3.5 w-3.5" strokeWidth={1.25} />
             {t.scanAgain}
-          </GhostButton>
+          </button>
         </section>
       </div>
 

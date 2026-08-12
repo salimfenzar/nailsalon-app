@@ -27,7 +27,7 @@ import {
 import { useCamera } from "../_lib/use-camera";
 import { useHandLandmarker } from "../_lib/use-hand-landmarker";
 import { copyFor, type Copy, type Language } from "../_lib/i18n";
-import { Eyebrow, GhostButton, Stage, cx } from "./ui";
+import { IconButton, Label, OutlineButton, Stage, cx } from "./ui";
 
 const COUNTDOWN_MS = 5000;
 /** Tracking may drop out this long before the countdown restarts. */
@@ -304,96 +304,72 @@ export function ScanScreen({
     camera.status === "denied" || camera.status === "error" || modelStatus === "error";
 
   return (
-    <Stage name="scan" className="bg-noir text-porcelain">
-      <div className="absolute inset-0 overflow-hidden">
-        <video
-          ref={videoRef}
-          playsInline
-          muted
-          autoPlay
-          className={cx(
-            "absolute inset-0 h-full w-full object-cover",
-            camera.mirrored && "-scale-x-100",
-          )}
-        />
-        <canvas
-          ref={canvasRef}
-          className={cx(
-            "pointer-events-none absolute inset-0 h-full w-full object-cover",
-            camera.mirrored && "-scale-x-100",
-          )}
-        />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_38%,rgba(10,8,7,0.72)_100%)]" />
-      </div>
-
-      <div className="safe-top relative flex items-center justify-between px-6">
-        <button
-          onClick={onCancel}
-          aria-label={t.back}
-          className="border-porcelain/25 text-porcelain/85 hover:bg-porcelain/10 flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-colors"
-        >
+    <Stage name="scan" className="bg-atelier text-charcoal">
+      <header className="safe-top border-hairline flex items-center justify-between border-b px-6 pb-4">
+        <IconButton onClick={onCancel} aria-label={t.back}>
           <ArrowLeft className="h-4 w-4" strokeWidth={1.25} />
-        </button>
-        <Eyebrow tone="light">{t.handScan}</Eyebrow>
-        <button
-          onClick={camera.flip}
-          aria-label={t.switchCamera}
-          className="border-porcelain/25 text-porcelain/85 hover:bg-porcelain/10 flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-colors"
-        >
+        </IconButton>
+        <Label className="text-charcoal/45">{t.handScan}</Label>
+        <IconButton onClick={camera.flip} aria-label={t.switchCamera}>
           <SwitchCamera className="h-4 w-4" strokeWidth={1.25} />
-        </button>
+        </IconButton>
+      </header>
+
+      <div className="flex min-h-0 flex-1 flex-col px-6 pt-6">
+        <div className="border-hairline bg-charcoal relative min-h-0 flex-1 overflow-hidden rounded-sm border">
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            autoPlay
+            className={cx(
+              "absolute inset-0 h-full w-full object-cover",
+              camera.mirrored && "-scale-x-100",
+            )}
+          />
+          <canvas
+            ref={canvasRef}
+            className={cx(
+              "pointer-events-none absolute inset-0 h-full w-full object-cover",
+              camera.mirrored && "-scale-x-100",
+            )}
+          />
+          <Brackets active={guidance.tracking} />
+        </div>
       </div>
 
-      <div className="relative flex flex-1 items-center justify-center px-8">
-        <Reticle active={guidance.tracking} />
-      </div>
-
-      <div className="safe-bottom relative flex flex-col items-center gap-5 px-8">
+      <footer className="safe-bottom flex flex-col gap-5 px-6 pt-6">
         {blocked ? (
-          <div className="border-porcelain/20 bg-noir/70 w-full max-w-sm rounded-3xl border p-6 text-center backdrop-blur-xl">
-            <TriangleAlert
-              className="text-champagne mx-auto mb-3 h-5 w-5"
-              strokeWidth={1.25}
-            />
-            <p className="text-porcelain/85 text-sm leading-relaxed font-light">
-              {resolveBlockedMessage(t, camera.error, modelError)}
-            </p>
-            <div className="mt-5 flex flex-col gap-2.5">
-              <GhostButton
-                onClick={camera.retry}
-                className="border-porcelain/25 text-porcelain/85 hover:text-porcelain hover:border-porcelain/50"
-              >
-                {t.tryAgain}
-              </GhostButton>
-              <GhostButton
+          <div className="border-hairline flex flex-col gap-5 border-t pt-5">
+            <div className="flex gap-3">
+              <TriangleAlert
+                className="text-charcoal/50 mt-0.5 h-4 w-4 shrink-0"
+                strokeWidth={1.25}
+              />
+              <p className="text-charcoal/70 text-sm leading-relaxed font-light">
+                {resolveBlockedMessage(t, camera.error, modelError)}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2.5">
+              <OutlineButton onClick={camera.retry}>{t.tryAgain}</OutlineButton>
+              <OutlineButton
                 onClick={() => fileInput.current?.click()}
                 icon={<ImageUp className="h-4 w-4" strokeWidth={1.25} />}
-                className="border-porcelain/25 text-porcelain/85 hover:text-porcelain hover:border-porcelain/50"
               >
                 {t.uploadPhoto}
-              </GhostButton>
+              </OutlineButton>
             </div>
           </div>
         ) : (
-          <>
-            <CountdownRing
-              progress={guidance.progress}
-              seconds={guidance.seconds}
-              counting={guidance.progress > 0}
-              preparing={preparing}
-            />
-            <div className="flex flex-col items-center gap-1.5 text-center">
-              <p className="font-display text-porcelain text-2xl leading-none font-light">
-                {preparing ? t.preparingScanner : guidance.message}
-              </p>
-              <p className="text-porcelain/55 text-xs font-light">
-                {preparing ? t.loadingModel : guidance.detail}
-              </p>
-            </div>
-            <p className="text-porcelain/40 text-[0.6rem] tracking-[0.16em] uppercase">
-              {t.recommending} {NAIL_SHAPES[shapeId].name}
-            </p>
-          </>
+          <ProgressReadout
+            title={preparing ? t.preparingScanner : guidance.message}
+            detail={preparing ? t.loadingModel : guidance.detail}
+            footnote={`${t.recommending} ${NAIL_SHAPES[shapeId].name}`}
+            progress={guidance.progress}
+            seconds={guidance.seconds}
+            counting={guidance.progress > 0}
+            preparing={preparing}
+          />
         )}
 
         <input
@@ -407,87 +383,88 @@ export function ScanScreen({
             if (file) onPickPhoto(file);
           }}
         />
-      </div>
+      </footer>
     </Stage>
   );
 }
 
-function Reticle({ active }: { active: boolean }) {
+/** Four hairline corner marks that recede once the hand is being tracked. */
+function Brackets({ active }: { active: boolean }) {
   return (
     <div
       className={cx(
-        "relative aspect-[3/4] w-full max-w-[19rem] transition-opacity duration-500",
-        active ? "opacity-30" : "opacity-70",
+        "pointer-events-none absolute inset-4 transition-opacity duration-500",
+        active ? "opacity-35" : "opacity-80",
       )}
     >
       {[
-        "left-0 top-0 border-l border-t rounded-tl-[2rem]",
-        "right-0 top-0 border-r border-t rounded-tr-[2rem]",
-        "left-0 bottom-0 border-l border-b rounded-bl-[2rem]",
-        "right-0 bottom-0 border-r border-b rounded-br-[2rem]",
+        "top-0 left-0 border-t border-l",
+        "top-0 right-0 border-t border-r",
+        "bottom-0 left-0 border-b border-l",
+        "bottom-0 right-0 border-b border-r",
       ].map((corner) => (
         <span
           key={corner}
-          className={cx("border-champagne/70 absolute h-12 w-12", corner)}
+          className={cx("border-atelier/80 absolute h-8 w-8", corner)}
         />
       ))}
     </div>
   );
 }
 
-function CountdownRing({
+function ProgressReadout({
+  title,
+  detail,
+  footnote,
   progress,
   seconds,
   counting,
   preparing,
 }: {
+  title: string;
+  detail: string;
+  footnote: string;
   progress: number;
   seconds: number;
   counting: boolean;
   preparing: boolean;
 }) {
-  const radius = 30;
-  const circumference = 2 * Math.PI * radius;
-
   return (
-    <div className="relative flex h-[4.5rem] w-[4.5rem] items-center justify-center">
-      <svg viewBox="0 0 72 72" className="absolute inset-0 h-full w-full -rotate-90">
-        <circle
-          cx="36"
-          cy="36"
-          r={radius}
-          fill="none"
-          stroke="rgba(250,247,244,0.18)"
-          strokeWidth="1.5"
+    <div className="flex flex-col gap-4">
+      <div className="flex items-baseline justify-between gap-4">
+        <p className="font-display text-charcoal text-2xl leading-none">
+          {title}
+        </p>
+        {preparing ? (
+          <LoaderCircle
+            className="text-charcoal/40 h-4 w-4 shrink-0 animate-spin"
+            strokeWidth={1.25}
+          />
+        ) : (
+          <span
+            className={cx(
+              "font-display shrink-0 text-2xl leading-none tabular-nums transition-colors",
+              counting ? "text-charcoal" : "text-charcoal/25",
+            )}
+          >
+            {counting ? seconds : 5}
+          </span>
+        )}
+      </div>
+
+      <div className="bg-hairline h-px w-full overflow-hidden">
+        <div
+          className="bg-charcoal h-px origin-left transition-transform duration-100 ease-linear"
+          style={{ transform: `scaleX(${progress})` }}
         />
-        <circle
-          cx="36"
-          cy="36"
-          r={radius}
-          fill="none"
-          stroke="#d9c4a7"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={circumference * (1 - progress)}
-          className="transition-[stroke-dashoffset] duration-100 ease-linear"
-        />
-      </svg>
-      {preparing ? (
-        <LoaderCircle
-          className="text-champagne h-5 w-5 animate-spin"
-          strokeWidth={1.25}
-        />
-      ) : (
-        <span
-          className={cx(
-            "font-display text-2xl leading-none font-light transition-colors",
-            counting ? "text-porcelain" : "text-porcelain/35",
-          )}
-        >
-          {counting ? seconds : 5}
-        </span>
-      )}
+      </div>
+
+      <div className="flex items-baseline justify-between gap-4">
+        <p className="text-charcoal/55 text-xs font-light">{detail}</p>
+        <Label className="text-charcoal/35 shrink-0 text-[0.6rem]">
+          {footnote}
+        </Label>
+      </div>
     </div>
   );
 }

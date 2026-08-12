@@ -5,7 +5,7 @@ import { Check, Download, Link2, Send, X } from "lucide-react";
 import { copyFor, type Language } from "../_lib/i18n";
 import { NAIL_SHAPES, type NailShapeId } from "../_lib/nail-shapes";
 import { swatchBackground, type Polish } from "../_lib/palette";
-import { Eyebrow, GhostButton, PrimaryButton, cx } from "./ui";
+import { IconButton, Label, OutlineButton, PrimaryButton, cx } from "./ui";
 
 type ShareModalProps = {
   language: Language;
@@ -57,7 +57,7 @@ export function ShareModal({
       const dataUrl = await mod.toDataURL(lookUrl, {
         width: 480,
         margin: 1,
-        color: { dark: "#4a3b32", light: "#faf7f4" },
+        color: { dark: "#1a1817", light: "#fbf9f5" },
       });
       if (!cancelled) setQr(dataUrl);
     });
@@ -117,60 +117,55 @@ export function ShareModal({
         aria-hidden
         tabIndex={-1}
         onClick={onClose}
-        className="bg-ink/45 absolute inset-0 backdrop-blur-sm"
+        className="bg-charcoal/40 absolute inset-0 backdrop-blur-sm"
       />
 
-      <div className="animate-rise bg-porcelain relative z-10 flex max-h-[92dvh] w-full max-w-[26rem] flex-col overflow-y-auto rounded-t-[2rem] px-6 pt-6 pb-8 shadow-[0_-20px_60px_-30px_rgba(33,26,21,0.6)] sm:rounded-[2rem]">
-        <div className="flex items-start justify-between">
-          <div className="flex flex-col gap-1">
-            <Eyebrow>{t.shareSubtitle}</Eyebrow>
-            <h2 className="font-display text-espresso text-3xl leading-none font-light">
+      <div className="animate-rise bg-atelier border-hairline relative z-10 flex max-h-[92dvh] w-full max-w-[26rem] flex-col overflow-y-auto rounded-t-sm border px-6 pt-6 pb-8 sm:rounded-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <Label className="text-charcoal/45">{t.shareSubtitle}</Label>
+            <h2 className="font-display text-charcoal text-3xl leading-none">
               {t.shareTitle}
             </h2>
           </div>
-          <button
-            ref={closeRef}
-            onClick={onClose}
-            aria-label={t.shareClose}
-            className="border-sand text-mocha hover:border-champagne hover:text-espresso flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors"
-          >
+          <IconButton ref={closeRef} onClick={onClose} aria-label={t.shareClose}>
             <X className="h-4 w-4" strokeWidth={1.25} />
-          </button>
+          </IconButton>
         </div>
 
-        <div className="border-sand mt-5 flex gap-4 rounded-2xl border p-3">
+        <div className="border-hairline mt-6 flex gap-4 border-t pt-5">
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={preview}
               alt=""
-              className="border-sand h-24 w-24 shrink-0 rounded-xl border object-cover"
+              className="border-hairline h-24 w-24 shrink-0 rounded-sm border object-cover"
             />
           ) : (
-            <div className="bg-linen h-24 w-24 shrink-0 rounded-xl" />
+            <div className="border-hairline h-24 w-24 shrink-0 rounded-sm border" />
           )}
 
-          <div className="flex min-w-0 flex-col justify-center gap-2.5">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-mocha/70 text-[0.55rem] tracking-[0.18em] uppercase">
+          <div className="flex min-w-0 flex-col justify-center gap-3">
+            <div className="flex flex-col gap-1">
+              <Label className="text-charcoal/40 text-[0.55rem]">
                 {t.shareShape}
-              </span>
-              <span className="font-display text-espresso text-xl leading-none">
+              </Label>
+              <span className="font-display text-charcoal text-xl leading-none">
                 {NAIL_SHAPES[shape].name}
-                <span className="text-taupe ml-2 text-xs">{match}%</span>
+                <span className="text-charcoal/45 ml-2 text-xs">{match}%</span>
               </span>
             </div>
 
-            <div className="flex flex-col gap-1">
-              <span className="text-mocha/70 text-[0.55rem] tracking-[0.18em] uppercase">
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-charcoal/40 text-[0.55rem]">
                 {t.shareColour}
-              </span>
+              </Label>
               <span className="flex items-center gap-2">
                 <span
-                  className="border-porcelain h-4 w-4 shrink-0 rounded-full border shadow-[0_1px_4px_rgba(74,59,50,0.3)]"
+                  className="border-hairline h-4 w-4 shrink-0 rounded-sm border"
                   style={{ background: swatchBackground(polish) }}
                 />
-                <span className="text-espresso truncate text-xs">
+                <span className="text-charcoal truncate text-xs">
                   {polish.name}
                 </span>
               </span>
@@ -178,25 +173,19 @@ export function ShareModal({
           </div>
         </div>
 
-        <div className="mt-5 flex flex-col items-center gap-3">
-          <div className="border-sand bg-linen/40 rounded-2xl border p-3">
-            {qr ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={qr}
-                alt={t.shareQrAlt}
-                className="h-36 w-36"
-              />
-            ) : (
-              <div className="bg-sand/40 h-36 w-36 animate-pulse rounded-lg" />
-            )}
-          </div>
-          <p className="text-mocha max-w-[17rem] text-balance text-center text-xs leading-relaxed font-light">
+        <div className="border-hairline mt-5 flex flex-col items-center gap-4 border-t pt-6">
+          {qr ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={qr} alt={t.shareQrAlt} className="h-40 w-40" />
+          ) : (
+            <div className="border-hairline h-40 w-40 animate-pulse border" />
+          )}
+          <p className="text-charcoal/60 max-w-[17rem] text-center text-xs leading-relaxed font-light text-balance">
             {t.shareScanHint}
           </p>
         </div>
 
-        <div className="mt-6 flex flex-col gap-2.5">
+        <div className="mt-7 flex flex-col gap-2.5">
           <PrimaryButton
             onClick={onDownload}
             icon={<Download className="h-4 w-4" strokeWidth={1.25} />}
@@ -205,27 +194,30 @@ export function ShareModal({
           </PrimaryButton>
 
           {canSend ? (
-            <GhostButton
+            <OutlineButton
               onClick={send}
               icon={<Send className="h-4 w-4" strokeWidth={1.25} />}
             >
               {t.shareSend}
-            </GhostButton>
+            </OutlineButton>
           ) : null}
 
-          <GhostButton
+          <button
             onClick={copyLink}
-            icon={
-              copied ? (
-                <Check className="h-4 w-4" strokeWidth={1.25} />
-              ) : (
-                <Link2 className="h-4 w-4" strokeWidth={1.25} />
-              )
-            }
-            className={cx(copied && "border-champagne text-espresso")}
+            className={cx(
+              "flex items-center justify-center gap-2 py-2 text-xs font-medium tracking-[0.2em] uppercase transition-colors",
+              copied
+                ? "text-charcoal"
+                : "text-charcoal/50 hover:text-charcoal",
+            )}
           >
+            {copied ? (
+              <Check className="h-3.5 w-3.5" strokeWidth={1.25} />
+            ) : (
+              <Link2 className="h-3.5 w-3.5" strokeWidth={1.25} />
+            )}
             {copied ? t.shareLinkCopied : t.shareCopyLink}
-          </GhostButton>
+          </button>
         </div>
       </div>
     </div>

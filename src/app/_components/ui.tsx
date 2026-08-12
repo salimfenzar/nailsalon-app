@@ -4,66 +4,64 @@ export function cx(...values: Array<string | false | null | undefined>): string 
   return values.filter(Boolean).join(" ");
 }
 
-export function Wordmark({ tone = "dark" }: { tone?: "dark" | "light" }) {
+type Tone = "dark" | "light";
+
+export function Wordmark({
+  tone = "dark",
+  size = "lg",
+}: {
+  tone?: Tone;
+  size?: "sm" | "lg";
+}) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
+    <div className="flex flex-col items-center gap-2">
       <span
         className={cx(
-          "font-display text-[1.75rem] leading-none font-light tracking-[0.3em]",
-          tone === "light" ? "text-porcelain" : "text-espresso",
+          "font-display leading-none font-normal tracking-[0.32em]",
+          size === "lg" ? "text-[2.15rem]" : "text-lg",
+          tone === "light" ? "text-atelier" : "text-charcoal",
         )}
       >
         LUMIÈRE
       </span>
-      <span
+      <Label
         className={cx(
-          "text-[0.5rem] tracking-luxe uppercase",
-          tone === "light" ? "text-porcelain/60" : "text-mocha/70",
+          size === "sm" && "text-[0.6rem]",
+          tone === "light" ? "text-atelier/50" : "text-charcoal/45",
         )}
       >
         Nail Atelier
-      </span>
+      </Label>
     </div>
   );
 }
 
-export function Eyebrow({
+/** The house micro-caps: every label, badge and button share this treatment. */
+export function Label({
   children,
-  tone = "dark",
   className,
 }: {
   children: ReactNode;
-  tone?: "dark" | "light";
   className?: string;
 }) {
   return (
     <span
-      className={cx(
-        "text-[0.625rem] tracking-luxe uppercase",
-        tone === "light" ? "text-porcelain/65" : "text-mocha",
-        className,
-      )}
+      className={cx("text-xs font-medium tracking-[0.2em] uppercase", className)}
     >
       {children}
     </span>
   );
 }
 
-export function Hairline({ className }: { className?: string }) {
-  return (
-    <div
-      className={cx(
-        "via-champagne h-px w-full bg-gradient-to-r from-transparent to-transparent",
-        className,
-      )}
-    />
-  );
+export function Rule({ className }: { className?: string }) {
+  return <div className={cx("bg-hairline h-px w-full", className)} />;
 }
 
 type ButtonProps = ComponentProps<"button"> & {
   icon?: ReactNode;
 };
 
+/** Square-edged and flat: weight comes from the fill, never from a shadow. */
 export function PrimaryButton({
   children,
   icon,
@@ -74,21 +72,20 @@ export function PrimaryButton({
     <button
       {...props}
       className={cx(
-        "group bg-espresso text-porcelain relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-full px-8 py-4",
-        "text-[0.7rem] tracking-luxe uppercase transition-all duration-300",
-        "hover:bg-ink active:scale-[0.985] disabled:pointer-events-none disabled:opacity-45",
-        "shadow-[0_18px_40px_-24px_rgba(33,26,21,0.9)]",
+        "bg-charcoal text-atelier flex w-full items-center justify-center gap-3 rounded-sm px-8 py-4",
+        "text-xs font-medium tracking-[0.2em] uppercase",
+        "transition-colors duration-300 hover:bg-[#2c2926]",
+        "disabled:pointer-events-none disabled:opacity-40",
         className,
       )}
     >
-      <span className="via-champagne/25 pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-700 group-hover:translate-x-full" />
       {icon}
-      <span className="relative">{children}</span>
+      {children}
     </button>
   );
 }
 
-export function GhostButton({
+export function OutlineButton({
   children,
   icon,
   className,
@@ -98,13 +95,62 @@ export function GhostButton({
     <button
       {...props}
       className={cx(
-        "text-mocha hover:text-espresso flex w-full items-center justify-center gap-2.5 rounded-full px-6 py-3.5",
-        "border-sand hover:border-champagne border text-[0.65rem] tracking-luxe uppercase",
-        "transition-colors duration-300 active:scale-[0.985] disabled:pointer-events-none disabled:opacity-45",
+        "border-charcoal text-charcoal flex w-full items-center justify-center gap-3 rounded-sm border bg-transparent px-8 py-4",
+        "text-xs font-medium tracking-[0.2em] uppercase",
+        "hover:bg-charcoal hover:text-atelier transition-colors duration-300",
+        "disabled:pointer-events-none disabled:opacity-40",
         className,
       )}
     >
       {icon}
+      {children}
+    </button>
+  );
+}
+
+/** Square hairline button for the header affordances (back, flip, close). */
+export function IconButton({
+  children,
+  tone = "dark",
+  className,
+  ...props
+}: ComponentProps<"button"> & { tone?: Tone }) {
+  return (
+    <button
+      {...props}
+      className={cx(
+        "flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border transition-colors duration-300",
+        tone === "light"
+          ? "border-atelier/30 text-atelier/80 hover:border-atelier/70 hover:text-atelier"
+          : "border-hairline text-charcoal/70 hover:border-charcoal hover:text-charcoal",
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Selection chip for shapes and colour categories. */
+export function Chip({
+  children,
+  active,
+  className,
+  ...props
+}: ComponentProps<"button"> & { active: boolean }) {
+  return (
+    <button
+      {...props}
+      aria-pressed={active}
+      className={cx(
+        "shrink-0 rounded-sm border px-4 py-2.5 text-xs font-medium tracking-[0.2em] whitespace-nowrap uppercase",
+        "transition-colors duration-300",
+        active
+          ? "border-charcoal bg-charcoal text-atelier"
+          : "border-hairline text-charcoal/60 hover:border-charcoal hover:text-charcoal",
+        className,
+      )}
+    >
       {children}
     </button>
   );

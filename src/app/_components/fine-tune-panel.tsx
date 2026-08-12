@@ -66,14 +66,14 @@ export function FineTunePanel({
   );
 
   return (
-    <div className="border-sand bg-porcelain/95 flex flex-col gap-5 rounded-2xl border px-5 py-5 shadow-[0_16px_40px_-28px_rgba(74,59,50,0.55)] backdrop-blur-md">
+    <div className="border-hairline flex flex-col gap-5 rounded-sm border px-5 py-5">
       {controls.map((control) => (
         <label key={control.key} className="flex flex-col gap-2.5">
           <span className="flex items-baseline justify-between">
-            <span className="text-mocha text-[0.6rem] tracking-[0.16em] uppercase">
+            <span className="text-charcoal/60 text-[0.6rem] font-medium tracking-[0.2em] uppercase">
               {control.label}
             </span>
-            <span className="text-espresso font-display text-sm">
+            <span className="text-charcoal font-display text-sm tabular-nums">
               {control.format(alignment[control.key])}
             </span>
           </span>
@@ -96,7 +96,7 @@ export function FineTunePanel({
       <button
         onClick={() => onChange(DEFAULT_ALIGNMENT)}
         disabled={!touched}
-        className="text-mocha hover:text-espresso flex items-center justify-center gap-2 pt-1 text-[0.6rem] tracking-[0.16em] uppercase transition-colors disabled:opacity-40"
+        className="text-charcoal/60 hover:text-charcoal border-hairline flex items-center justify-center gap-2 border-t pt-4 text-[0.6rem] font-medium tracking-[0.2em] uppercase transition-colors disabled:opacity-40"
       >
         <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.25} />
         {t.resetAlignment}
