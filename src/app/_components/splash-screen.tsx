@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { ImageUp, ScanLine, Sparkles } from "lucide-react";
-import { Eyebrow, GhostButton, Hairline, PrimaryButton, Stage, Wordmark } from "./ui";
+import { Eyebrow, GhostButton, PrimaryButton, Stage, Wordmark } from "./ui";
 
 type SplashScreenProps = {
   onStartScan: () => void;
@@ -10,12 +10,6 @@ type SplashScreenProps = {
   busy: boolean;
   notice: string | null;
 };
-
-const PROMISES = [
-  "21 landmarks mapped in real time",
-  "Shape matched to your finger ratio",
-  "Nothing leaves your device",
-];
 
 export function SplashScreen({
   onStartScan,
@@ -36,7 +30,7 @@ export function SplashScreen({
       <div className="safe-top relative flex flex-1 flex-col items-center px-8">
         <Wordmark />
 
-        <div className="flex flex-1 flex-col items-center justify-center gap-8 py-10 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center gap-10 py-10 text-center">
           <div className="animate-rise flex flex-col items-center gap-5">
             <Eyebrow>AI Hand Scan</Eyebrow>
             <h1 className="font-display text-espresso text-balance text-[2.6rem] leading-[1.08] font-light">
@@ -46,10 +40,8 @@ export function SplashScreen({
               <br />
               were made for
             </h1>
-            <p className="text-mocha max-w-[19rem] text-balance text-sm leading-relaxed font-light">
-              Hold your hand still for five seconds. We measure the ratio of
-              every finger and place the nail shape, length and shade that suit
-              you best — on your own photograph.
+            <p className="text-mocha max-w-[18rem] text-balance text-sm leading-relaxed font-light tracking-wide">
+              AI-powered hand analysis &amp; instant shape matching.
             </p>
           </div>
 
@@ -65,7 +57,7 @@ export function SplashScreen({
         </div>
 
         <div
-          className="animate-rise safe-bottom flex w-full max-w-sm flex-col items-center gap-4"
+          className="animate-rise safe-bottom flex w-full max-w-sm flex-col items-center gap-5 pb-6"
           style={{ animationDelay: "220ms" }}
         >
           {notice ? (
@@ -105,14 +97,6 @@ export function SplashScreen({
               if (file) onPickPhoto(file);
             }}
           />
-
-          <Hairline className="mt-2" />
-
-          <ul className="text-mocha/80 flex flex-col items-center gap-1.5 pt-1 text-[0.6rem] tracking-[0.16em] uppercase">
-            {PROMISES.map((promise) => (
-              <li key={promise}>{promise}</li>
-            ))}
-          </ul>
         </div>
       </div>
     </Stage>
