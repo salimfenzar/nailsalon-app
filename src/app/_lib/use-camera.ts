@@ -45,9 +45,7 @@ export function useCamera(
     const start = async () => {
       if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
         setStatus("error");
-        setError(
-          "This browser cannot open a camera. Upload a photo of your hand instead.",
-        );
+        setError("unsupported");
         return;
       }
 
@@ -86,17 +84,13 @@ export function useCamera(
         const name = cause instanceof DOMException ? cause.name : "";
         if (name === "NotAllowedError" || name === "SecurityError") {
           setStatus("denied");
-          setError(
-            "Camera access was declined. Allow it in your browser settings, or upload a photo instead.",
-          );
+          setError("denied");
         } else if (name === "NotFoundError" || name === "OverconstrainedError") {
           setStatus("error");
-          setError("No usable camera was found on this device.");
+          setError("not_found");
         } else {
           setStatus("error");
-          setError(
-            cause instanceof Error ? cause.message : "The camera could not be started.",
-          );
+          setError("start_failed");
         }
       }
     };

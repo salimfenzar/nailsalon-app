@@ -20,6 +20,7 @@
   --animate-fade: fade 1.2s ease both;
   --animate-shimmer: shimmer 3.5s linear infinite;
   --animate-breathe: breathe 4s ease-in-out infinite;
+  --animate-logo-pulse: logo-pulse 3.6s ease-in-out infinite;
 
   @keyframes rise {
     from {
@@ -59,6 +60,18 @@
     50% {
       opacity: 0.85;
       transform: scale(1.06);
+    }
+  }
+
+  @keyframes logo-pulse {
+    0%,
+    100% {
+      opacity: 0.72;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.045);
     }
   }
 }

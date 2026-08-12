@@ -21,6 +21,7 @@ import {
 } from "../_lib/scan";
 import { useCamera } from "../_lib/use-camera";
 import { useHandLandmarker } from "../_lib/use-hand-landmarker";
+import { copyFor, type Copy, type Language } from "../_lib/i18n";
 import { Eyebrow, GhostButton, Stage, cx } from "./ui";
 
 const COUNTDOWN_MS = 5000;
@@ -37,21 +38,58 @@ type Guidance = {
   progress: number;
 };
 
-const IDLE_GUIDANCE: Guidance = {
-  message: "Show your hand",
-  detail: "Palm down, fingers relaxed and slightly apart",
-  tracking: false,
-  seconds: 5,
-  progress: 0,
-};
+function idleGuidance(t: Copy): Guidance {
+  return {
+    message: t.showHand,
+    detail: t.showHandDetail,
+    tracking: false,
+    seconds: 5,
+    progress: 0,
+  };
+}
+
+function resolveBlockedMessage(
+  t: Copy,
+  cameraError: string | null,
+  modelError: string | null,
+): string {
+  const key = cameraError ?? modelError;
+  switch (key) {
+    case "unsupported":
+      return t.cameraUnsupported;
+    case "denied":
+      return t.cameraDenied;
+    case "not_found":
+      return t.cameraNotFound;
+    case "start_failed":
+      return t.cameraStartFailed;
+    case "load_failed":
+      return t.modelLoadFailed;
+    default:
+      return t.scannerUnavailable;
+  }
+}
 
 type ScanScreenProps = {
+  language: Language;
   onComplete: (result: ScanResult) => void;
   onCancel: () => void;
   onPickPhoto: (file: File) => void;
 };
 
-export function ScanScreen({ onComplete, onCancel, onPickPhoto }: ScanScreenProps) {
+export function ScanScreen({
+  language,
+  onComplete,
+  onCancel,
+  onPickPhoto,
+}: ScanScreenProps) {
+  const t = copyFor(language);
+  const tRef = useRef(t);
+
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -60,7 +98,7 @@ export function ScanScreen({ onComplete, onCancel, onPickPhoto }: ScanScreenProp
   const { status: modelStatus, error: modelError, detectVideo, prepareVideoMode } =
     useHandLandmarker(true);
 
-  const [guidance, setGuidance] = useState<Guidance>(IDLE_GUIDANCE);
+  const [guidance, setGuidance] = useState<Guidance>(() => idleGuidance(t));
   const [shapeId, setShapeId] = useState<NailShapeId>("almond");
 
   const samples = useRef<HandLandmarks[]>([]);
@@ -71,7 +109,7 @@ export function ScanScreen({ onComplete, onCancel, onPickPhoto }: ScanScreenProp
   const frameCount = useRef(0);
   const finished = useRef(false);
   const shapeRef = useRef<NailShapeId>("almond");
-  const guidanceRef = useRef<Guidance>(IDLE_GUIDANCE);
+  const guidanceRef = useRef<Guidance>(idleGuidance(t));
 
   const publish = useCallback((next: Guidance) => {
     const previous = guidanceRef.current;
@@ -154,7 +192,7 @@ export function ScanScreen({ onComplete, onCancel, onPickPhoto }: ScanScreenProp
           countdownStart.current = null;
           samples.current = [];
           recent.current = [];
-          publish(IDLE_GUIDANCE);
+          publish(idleGuidance(tRef.current));
         }
         return;
       }
@@ -185,21 +223,22 @@ export function ScanScreen({ onComplete, onCancel, onPickPhoto }: ScanScreenProp
       const visible = isFullyVisible(landmarks);
       const steady = jitterOf(recent.current) < STEADY_JITTER;
       const close = span > MIN_HAND_SPAN;
+      const copy = tRef.current;
 
       if (!visible || !close || !steady) {
         countdownStart.current = null;
         samples.current = [];
         publish({
           message: !close
-            ? "Move a little closer"
+            ? copy.moveCloser
             : !visible
-              ? "Bring the whole hand into frame"
-              : "Hold still",
+              ? copy.wholeHand
+              : copy.holdStill,
           detail: !close
-            ? "Fill the frame with your hand"
+            ? copy.moveCloserDetail
             : !visible
-              ? "All five fingertips need to be visible"
-              : "Almost there — steady now",
+              ? copy.wholeHandDetail
+              : copy.holdStillDetail,
           tracking: true,
           seconds: 5,
           progress: 0,
@@ -214,8 +253,8 @@ export function ScanScreen({ onComplete, onCancel, onPickPhoto }: ScanScreenProp
       const progress = Math.min(1, elapsed / COUNTDOWN_MS);
 
       publish({
-        message: "Measuring",
-        detail: "Keep your hand exactly where it is",
+        message: copy.measuring,
+        detail: copy.measuringDetail,
         tracking: true,
         seconds: Math.max(1, Math.ceil((COUNTDOWN_MS - elapsed) / 1000)),
         progress,
@@ -258,15 +297,15 @@ export function ScanScreen({ onComplete, onCancel, onPickPhoto }: ScanScreenProp
       <div className="safe-top relative flex items-center justify-between px-6">
         <button
           onClick={onCancel}
-          aria-label="Back"
+          aria-label={t.back}
           className="border-porcelain/25 text-porcelain/85 hover:bg-porcelain/10 flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-colors"
         >
           <ArrowLeft className="h-4 w-4" strokeWidth={1.25} />
         </button>
-        <Eyebrow tone="light">Hand Scan</Eyebrow>
+        <Eyebrow tone="light">{t.handScan}</Eyebrow>
         <button
           onClick={camera.flip}
-          aria-label="Switch camera"
+          aria-label={t.switchCamera}
           className="border-porcelain/25 text-porcelain/85 hover:bg-porcelain/10 flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-colors"
         >
           <SwitchCamera className="h-4 w-4" strokeWidth={1.25} />
@@ -285,21 +324,21 @@ export function ScanScreen({ onComplete, onCancel, onPickPhoto }: ScanScreenProp
               strokeWidth={1.25}
             />
             <p className="text-porcelain/85 text-sm leading-relaxed font-light">
-              {camera.error ?? modelError ?? "The scanner is unavailable."}
+              {resolveBlockedMessage(t, camera.error, modelError)}
             </p>
             <div className="mt-5 flex flex-col gap-2.5">
               <GhostButton
                 onClick={camera.retry}
                 className="border-porcelain/25 text-porcelain/85 hover:text-porcelain hover:border-porcelain/50"
               >
-                Try again
+                {t.tryAgain}
               </GhostButton>
               <GhostButton
                 onClick={() => fileInput.current?.click()}
                 icon={<ImageUp className="h-4 w-4" strokeWidth={1.25} />}
                 className="border-porcelain/25 text-porcelain/85 hover:text-porcelain hover:border-porcelain/50"
               >
-                Upload a photo
+                {t.uploadPhoto}
               </GhostButton>
             </div>
           </div>
@@ -313,16 +352,14 @@ export function ScanScreen({ onComplete, onCancel, onPickPhoto }: ScanScreenProp
             />
             <div className="flex flex-col items-center gap-1.5 text-center">
               <p className="font-display text-porcelain text-2xl leading-none font-light">
-                {preparing ? "Preparing the scanner" : guidance.message}
+                {preparing ? t.preparingScanner : guidance.message}
               </p>
               <p className="text-porcelain/55 text-xs font-light">
-                {preparing
-                  ? "Loading the hand tracking model"
-                  : guidance.detail}
+                {preparing ? t.loadingModel : guidance.detail}
               </p>
             </div>
             <p className="text-porcelain/40 text-[0.6rem] tracking-[0.16em] uppercase">
-              Recommending {NAIL_SHAPES[shapeId].name}
+              {t.recommending} {NAIL_SHAPES[shapeId].name}
             </p>
           </>
         )}

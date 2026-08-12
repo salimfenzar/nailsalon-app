@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import type { HandLandmarks } from "../_lib/geometry";
+import { copyFor, type Language } from "../_lib/i18n";
 import {
   buildScanResult,
   imageToCanvas,
@@ -9,14 +10,16 @@ import {
   type ScanResult,
 } from "../_lib/scan";
 import { useHandLandmarker } from "../_lib/use-hand-landmarker";
+import { LanguageIntro } from "./language-intro";
 import { ResultScreen } from "./result-screen";
 import { ScanScreen } from "./scan-screen";
 import { SplashScreen } from "./splash-screen";
 
-type Stage = "splash" | "scan" | "result";
+type Stage = "intro" | "splash" | "scan" | "result";
 
 export function Studio() {
-  const [stage, setStage] = useState<Stage>("splash");
+  const [stage, setStage] = useState<Stage>("intro");
+  const [language, setLanguage] = useState<Language>("en");
   const [result, setResult] = useState<ScanResult | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -29,20 +32,19 @@ export function Studio() {
     async (file: File) => {
       setBusy(true);
       setNotice(null);
+      const messages = copyFor(language);
 
       try {
         const image = await loadImageFile(file);
         const canvas = imageToCanvas(image);
-        if (!canvas) throw new Error("That image could not be read.");
+        if (!canvas) throw new Error(messages.imageUnreadable);
 
         const detection = await detectImage(canvas);
         const landmarks = detection?.landmarks?.[0] as HandLandmarks | undefined;
 
         if (!landmarks || landmarks.length < 21) {
           setStage("splash");
-          setNotice(
-            "No hand was found in that photo. Use a well-lit shot with the palm down and all five fingertips inside the frame.",
-          );
+          setNotice(messages.noHandInPhoto);
           return;
         }
 
@@ -51,15 +53,13 @@ export function Studio() {
       } catch (cause: unknown) {
         setStage("splash");
         setNotice(
-          cause instanceof Error
-            ? cause.message
-            : "That photo could not be analysed.",
+          cause instanceof Error ? cause.message : messages.photoAnalyseFailed,
         );
       } finally {
         setBusy(false);
       }
     },
-    [detectImage],
+    [detectImage, language],
   );
 
   const handleComplete = useCallback((scan: ScanResult) => {
@@ -68,9 +68,21 @@ export function Studio() {
     setStage("result");
   }, []);
 
+  if (stage === "intro") {
+    return (
+      <LanguageIntro
+        onSelect={(next) => {
+          setLanguage(next);
+          setStage("splash");
+        }}
+      />
+    );
+  }
+
   if (stage === "scan") {
     return (
       <ScanScreen
+        language={language}
         onComplete={handleComplete}
         onCancel={() => setStage("splash")}
         onPickPhoto={handlePickPhoto}
@@ -81,6 +93,7 @@ export function Studio() {
   if (stage === "result" && result) {
     return (
       <ResultScreen
+        language={language}
         result={result}
         onRescan={() => setStage("scan")}
         onBack={() => setStage("splash")}
@@ -90,6 +103,7 @@ export function Studio() {
 
   return (
     <SplashScreen
+      language={language}
       onStartScan={() => {
         setNotice(null);
         setStage("scan");

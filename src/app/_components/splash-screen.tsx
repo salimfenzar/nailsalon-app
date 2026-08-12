@@ -2,9 +2,11 @@
 
 import { useRef, useState } from "react";
 import { ImageUp, ScanLine, Sparkles } from "lucide-react";
+import { copyFor, type Language } from "../_lib/i18n";
 import { Eyebrow, GhostButton, PrimaryButton, Stage, Wordmark } from "./ui";
 
 type SplashScreenProps = {
+  language: Language;
   onStartScan: () => void;
   onPickPhoto: (file: File) => void;
   busy: boolean;
@@ -12,16 +14,18 @@ type SplashScreenProps = {
 };
 
 export function SplashScreen({
+  language,
   onStartScan,
   onPickPhoto,
   busy,
   notice,
 }: SplashScreenProps) {
+  const t = copyFor(language);
   const fileInput = useRef<HTMLInputElement>(null);
   const [pressed, setPressed] = useState(false);
 
   return (
-    <Stage name="splash" className="bg-porcelain overflow-hidden">
+    <Stage name="splash" className="bg-porcelain animate-fade overflow-hidden">
       <div className="pointer-events-none absolute inset-0">
         <div className="bg-blush/40 absolute -top-32 -right-24 h-72 w-72 rounded-full blur-3xl" />
         <div className="bg-champagne/35 absolute -bottom-40 -left-24 h-80 w-80 rounded-full blur-3xl" />
@@ -32,16 +36,16 @@ export function SplashScreen({
 
         <div className="flex flex-1 flex-col items-center justify-center gap-10 py-10 text-center">
           <div className="animate-rise flex flex-col items-center gap-5">
-            <Eyebrow>AI Hand Scan</Eyebrow>
+            <Eyebrow>{t.aiHandScan}</Eyebrow>
             <h1 className="font-display text-espresso text-balance text-[2.6rem] leading-[1.08] font-light">
-              Discover the shape
+              {t.splashHeadlineLead}
               <br />
-              <span className="gilded italic">your hands</span>
+              <span className="gilded italic">{t.splashHeadlineAccent}</span>
               <br />
-              were made for
+              {t.splashHeadlineTail}
             </h1>
             <p className="text-mocha max-w-[18rem] text-balance text-sm leading-relaxed font-light tracking-wide">
-              AI-powered hand analysis &amp; instant shape matching.
+              {t.splashSubtitle}
             </p>
           </div>
 
@@ -75,7 +79,7 @@ export function SplashScreen({
             icon={<ScanLine className="h-4 w-4" strokeWidth={1.25} />}
             className={pressed ? "scale-[0.985]" : undefined}
           >
-            {busy ? "Preparing" : "Start Hand Scan"}
+            {busy ? t.preparing : t.startHandScan}
           </PrimaryButton>
 
           <GhostButton
@@ -83,7 +87,7 @@ export function SplashScreen({
             disabled={busy}
             icon={<ImageUp className="h-4 w-4" strokeWidth={1.25} />}
           >
-            Use a photo instead
+            {t.usePhotoInstead}
           </GhostButton>
 
           <input

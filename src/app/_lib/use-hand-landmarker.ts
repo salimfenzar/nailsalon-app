@@ -73,14 +73,11 @@ export function useHandLandmarker(enabled: boolean) {
         landmarker.current = value;
         setResolved({ status: "ready", error: null });
       })
-      .catch((cause: unknown) => {
+      .catch(() => {
         if (cancelled) return;
         setResolved({
           status: "error",
-          error:
-            cause instanceof Error
-              ? cause.message
-              : "The hand tracking model could not be loaded.",
+          error: "load_failed",
         });
       });
 
